@@ -10,11 +10,11 @@ import com.google.gson.Gson;
 import br.com.stuxnet.dto.EnderecoDTO;
 
 public class ViaCepService {
-    public EnderecoDTO consultarEnderecoDTO(String cep){
+    public EnderecoDTO consultarCEP(String cep){
         if(cep == null){
             throw new IllegalArgumentException("CEP não pode ficar vazio");
         }
-        
+
         String cepApenasNumero = cep.replaceAll("\\D", "");
 
         if(cepApenasNumero.length() != 8){
@@ -36,14 +36,14 @@ public class ViaCepService {
     private String buscarViaCep(String cep){
         try{
             HttpClient cliente = HttpClient.newHttpClient();
-            HttpRequest pedido = HttpRequest.newBuilder().uri(URI.create("https://viacep.com.br/ws" + cep + "/json/")).timeout(Duration.ofSeconds(3)).GET().build();
+            HttpRequest pedido = HttpRequest.newBuilder().uri(URI.create("https://viacep.com.br/ws/" + cep + "/json/")).timeout(Duration.ofSeconds(3)).GET().build();
 
             HttpResponse<String> resposta = cliente.send(pedido, HttpResponse.BodyHandlers.ofString());
 
             if(resposta.statusCode() == 400){
                 throw new IllegalArgumentException("O CEP " + cep + " é inválido");
             }
-            if(resposta.statusCode() == 300){
+            if(resposta.statusCode() != 200){
                 throw new IllegalArgumentException("A ViaCEP respondeu com o status " + resposta.statusCode());
             }
 
