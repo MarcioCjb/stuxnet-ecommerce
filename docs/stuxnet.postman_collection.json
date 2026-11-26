@@ -1,0 +1,36 @@
+{
+  "info": {
+    "name": "Stuxnet",
+    "description": "Chamadas da API externa (ViaCEP) usada pelo ViaCepService.java",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "ViaCEP - CEP valido",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://viacep.com.br/ws/01001000/json/",
+        "description": "Resultado esperado: 200 com logradouro Praça da Sé, localidade São Paulo e uf SP."
+      }
+    },
+    {
+      "name": "ViaCEP - CEP inexistente",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://viacep.com.br/ws/99999999/json/",
+        "description": "Esperado: 200 com {\"erro\": \"true\"}. O erro vem como texto e o ViaCepService transforma isso em exceção."
+      }
+    },
+    {
+      "name": "ViaCEP - CEP mal formado",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://viacep.com.br/ws/123/json/",
+        "description": "Esperado: 400 com uma página HTML. Na nossa API esse caso nem chama a ViaCEP, porque o service confere se tem os 8 dígitos antes."
+      }
+    }
+  ]
+}
