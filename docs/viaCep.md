@@ -1,63 +1,106 @@
 # API externa: ViaCEP
 
-A gente usa a ViaCEP, uma API pública e gratuita que devolve o endereço a partir de um CEP. Ela é chamada pelo backend, dentro do `ViaCepService`, e não precisa de chave nem de cadastro.
+A StuxNet usa a [ViaCEP](https://viacep.com.br/) para consultar um endereço a partir do CEP. É uma API pública e gratuita, sem necessidade de chave ou cadastro.
 
-## Como chamar
+A consulta externa é feita neste formato:
 
-```
+```http
 GET https://viacep.com.br/ws/{cep}/json/
 ```
 
-O `{cep}` vai só com os 8 números, sem hífen. Exemplo: `https://viacep.com.br/ws/01001000/json/`.
+O `{cep}` é enviado com os oito números, sem hífen. Exemplo:
 
-## O que ela devolve
+```text
+https://viacep.com.br/ws/01001000/json/
+```
 
-Testei no Postman (a collection está em `docs/stuxnet.postman_collection.json`) e tem 3 casos:
+## Como a API StuxNet consulta o CEP
 
-**1. CEP válido:** volta 200 com o endereço. A gente só usa `cep`, `logradouro`, `complemento`, `bairro`, `localidade` (a cidade) e `uf`, o resto do JSON a gente ignora.
+No lugar de o cliente acessar o ViaCEP diretamente, a aplicação disponibiliza sua própria rota:
+
+```http
+GET http://localhost:8080/api/cep/{cep}
+```
+
+Exemplo:
+
+```http
+GET http://localhost:8080/api/cep/01001-000
+```
+
+A collection do Postman verifica que um CEP válido retorna `200` e que a resposta contém os campos `localidade` e `uf`. Para o CEP `01001-000`, os valores esperados são `São Paulo` e `SP`.
+
+## O que o ViaCEP devolve
+
+Uma consulta válida retorna um JSON com os dados do endereço. Por exemplo:
 
 ```json
 {
-    "cep": "01001-000",
-    "logradouro": "Praça da Sé",
-    "complemento": "lado ímpar",
-    "bairro": "Sé",
-    "localidade": "São Paulo",
-    "uf": "SP"
+  "cep": "01001-000",
+  "logradouro": "Praça da Sé",
+  "complemento": "lado ímpar",
+  "bairro": "Sé",
+  "localidade": "São Paulo",
+  "uf": "SP"
 }
 ```
 
-**2. CEP que não existe:** não dá erro 404, volta **200** com um JSON esquisito. Repara que o `true` vem entre aspas, como texto:
+A collection da StuxNet confere especificamente `localidade` e `uf` na consulta de CEP. No cadastro de endereço, ela também verifica se a resposta da aplicação contém a cidade `São Paulo`.
+
+## Diferença entre as respostas do ViaCEP e da StuxNet
+
+É importante separar o comportamento do serviço externo do comportamento da API da loja.
+
+**1. CEP válido:** o ViaCEP responde `200` com os dados do endereço. A rota `/api/cep/{cep}` da StuxNet também deve responder `200`.
+
+**2. CEP inexistente:** o ViaCEP não responde `404`. Ele retorna `200` com um JSON contendo o campo `erro` como texto:
 
 ```json
 {
-    "erro": "true"
+  "erro": "true"
 }
 ```
 
-**3. CEP mal formado (tipo `123`):** volta **400** com uma página HTML, não com JSON.
+A StuxNet trata esse retorno como CEP não encontrado e responde `404`. Esse comportamento é verificado na collection com o CEP `99999999`.
 
-## Como o ViaCepService trata cada caso
-
-O código está em `src/main/java/br/com/stuxnet/service/ViaCepService.java`.
-
-1. Confere se o CEP contém oito dígitos, com hífen opcional. Letras e outros caracteres são rejeitados **sem nem chamar a ViaCEP**. Depois remove apenas o hífen para montar a URL.
-2. Faz o GET com o `HttpClient` do próprio Java, com limite de 3 segundos.
-3. Se o fornecedor respondeu um status diferente de 200 ou enviou dados inválidos, a StuxNet retorna **502**. Se a chamada excedeu o tempo limite, retorna **504**.
-4. Se deu 200, usa o **Gson** para transformar o JSON num objeto `EnderecoDTO`.
-5. Se o campo `erro` veio como `true` ou `"true"`, o CEP não existe e a API retorna **404**.
-
-Erros de formato retornam **400**. O `FrontController` converte as exceções em JSON com `status`, `codigo`, `mensagem`, `caminho` e `requestId`, mantendo o mesmo contrato dos outros endpoints.
+**3. CEP malformado:** na consulta direta, o ViaCEP responde `400` para um CEP como `123`. A collection também verifica `400` ao consultar `/api/cep/123` na StuxNet.
 
 ## Onde isso é usado
 
-- **Consultar CEP e cadastrar endereço do cliente:** o `ViaCepService` completa rua, bairro, cidade e UF a partir do CEP e do número.
-- **Frete:** o `FreteService` pega a UF que o `ViaCepService` devolveu e escolhe o valor e o prazo (por região, valores simulados, sem transportadora de verdade).
+- **Consulta e cadastro de endereço:** a aplicação disponibiliza `POST /api/clientes/{clienteId}/enderecos`. O corpo da requisição recebe o CEP, o número e, opcionalmente, o complemento. Exemplo:
 
-As quatro faixas de frete normal são: Bahia, R$ 22,90/2 dias; demais estados do Nordeste, R$ 22,90/4 dias; Sudeste, R$ 34,90/6 dias; demais UFs, R$ 49,90/9 dias. Essas regras são implementadas com Strategy. A modalidade expressa utiliza Decorator, acrescenta R$ 15,00 e reduz dois dias, com mínimo de um dia útil. Pedidos com endereço já cadastrado usam a UF salva, sem consultar o fornecedor novamente.
+  ```json
+  {
+    "cep": "01001-000",
+    "numero": "100",
+    "complemento": "Sala 2"
+  }
+  ```
 
-## Testes
+  A collection verifica o retorno `201` e a cidade `São Paulo`. Os endereços cadastrados podem ser consultados por `GET /api/clientes/{clienteId}/enderecos`. O cadastro para um cliente inexistente é testado e deve retornar `404`.
 
-Os cinco cenários de `FreteServiceTest` cobrem as quatro faixas de frete e o CEP inexistente. Foram integrados à suíte da API com um servidor HTTP local que simula o ViaCEP, evitando depender da internet durante `mvn test`. `ViaCepServiceTest` verifica o contrato do fornecedor, e `ApiIntegrationTest` exercita os endpoints, os fretes normal/expresso, os pedidos e o estoque.
+- **Cálculo do frete:** a rota `GET /api/frete` recebe o CEP como parâmetro. A modalidade expressa pode ser solicitada com `modalidade=EXPRESSO`. A collection verifica os seguintes valores:
 
-Para testar o fornecedor real, use as consultas da pasta opcional `08 - ViaCEP direto` na coleção do Postman. As outras pastas validam a API StuxNet, incluindo as cotações de frete para o Nordeste.
+  | Região testada | Frete normal | Prazo normal | Frete expresso | Prazo expresso |
+  |---|---:|---:|---:|---:|
+  | Bahia | R$ 22,90 | 2 dias úteis | R$ 37,90 | 1 dia útil |
+  | Demais estados do Nordeste | R$ 22,90 | 4 dias úteis | R$ 37,90 | 2 dias úteis |
+  | Sudeste | R$ 34,90 | 6 dias úteis | R$ 49,90 | 4 dias úteis |
+  | Demais regiões | R$ 49,90 | 9 dias úteis | — | — |
+
+  A collection também verifica que CEP ausente, CEP inválido e modalidade inválida retornam `400` na cotação do frete.
+
+## Testes no Postman
+
+Os cenários relacionados ao CEP e aos endereços estão na pasta **`04 - CEP e endereços`** da collection:
+
+- CEP válido: consulta `01001-000`, espera `200` e confere cidade e UF.
+- CEP inexistente: consulta `99999999` e espera `404` na API StuxNet.
+- CEP malformado: consulta `123` e espera `400`.
+- Cadastro de endereço: envia CEP, número e complemento, espera `201` e confere a cidade.
+- Listagem de endereços: espera `200`.
+- Cliente inexistente: tenta cadastrar um endereço para um ID que não existe e espera `404`.
+
+A pasta **`08 - ViaCEP direto (opcional)`** consulta o fornecedor sem passar pela API StuxNet. Ela contém os três casos — CEP válido, inexistente e malformado — e pode ser desmarcada no Collection Runner. Esses testes diretos ajudam a conferir as respostas originais do ViaCEP.
+
+As consultas de CEP válido e inexistente dependem de conexão com a internet. Para executar o fluxo completo da collection, rode as pastas **01 a 07** em ordem no Collection Runner. Os IDs necessários são salvos automaticamente pela própria collection.
