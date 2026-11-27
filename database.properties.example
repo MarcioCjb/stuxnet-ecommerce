@@ -1,0 +1,4 @@
+# Copie para database.properties; variáveis DB_URL/DB_USER/DB_PASSWORD têm prioridade.
+db.url=jdbc:postgresql://127.0.0.1:5432/stuxnet
+db.user=stuxnet
+db.password=SUBSTITUA_PELA_SENHA_LOCAL

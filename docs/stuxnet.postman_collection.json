@@ -1,0 +1,702 @@
+{
+  "info": {
+    "name": "StuxNet - Loja de hardware e periféricos",
+    "description": "API em Java 17 sem frameworks (FrontController, Command, Service, DAO e Model). Rode as pastas 01 a 07 em ordem no Collection Runner. Os IDs são salvos sozinhos. Se reiniciar o servidor, os dados em memória somem. A pasta 08 é opcional.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "produtoId", "value": "" },
+    { "key": "perifericoId", "value": "" },
+    { "key": "produtoTemporarioId", "value": "" },
+    { "key": "clienteId", "value": "" },
+    { "key": "clienteEmail", "value": "" },
+    { "key": "clienteTemporarioId", "value": "" },
+    { "key": "enderecoId", "value": "" },
+    { "key": "pedidoId", "value": "" },
+    { "key": "pedidoExpressoId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Disponibilidade",
+      "item": [
+        {
+          "name": "Saúde da API",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/health" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('API esta UP', function () { pm.expect(pm.response.json().status).to.eql('UP'); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "02 - Produtos",
+      "item": [
+        {
+          "name": "Cadastrar hardware",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 500,\n  \"estoque\": 10\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+            "if (pm.response.code === 201) { pm.collectionVariables.set('produtoId', pm.response.json().id); }"
+          ] } }]
+        },
+        {
+          "name": "Listar produtos",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/produtos" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Veio uma lista', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+          ] } }]
+        },
+        {
+          "name": "Buscar hardware",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/produtos/{{produtoId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Categoria HARDWARE', function () { pm.expect(pm.response.json().categoria).to.eql('HARDWARE'); });",
+            "pm.test('Estoque 10', function () { pm.expect(pm.response.json().estoque).to.eql(10); });"
+          ] } }]
+        },
+        {
+          "name": "Atualizar hardware",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos/{{produtoId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 499.9,\n  \"estoque\": 10\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Preco atualizado', function () { pm.expect(pm.response.json().preco).to.eql(499.9); });"
+          ] } }]
+        },
+        {
+          "name": "Cadastrar periférico",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Mouse USB\",\n  \"categoria\": \"PERIFERICO\",\n  \"preco\": 79.9,\n  \"estoque\": 5\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+            "if (pm.response.code === 201) { pm.collectionVariables.set('perifericoId', pm.response.json().id); }"
+          ] } }]
+        },
+        {
+          "name": "Cadastrar produto temporário",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Produto temporário\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 500,\n  \"estoque\": 10\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+            "if (pm.response.code === 201) { pm.collectionVariables.set('produtoTemporarioId', pm.response.json().id); }"
+          ] } }]
+        },
+        {
+          "name": "Excluir produto temporário",
+          "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/produtos/{{produtoTemporarioId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+          ] } }]
+        },
+        {
+          "name": "Produto excluído retorna 404",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/produtos/{{produtoTemporarioId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "03 - Clientes",
+      "item": [
+        {
+          "name": "Cadastrar cliente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/clientes",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Cliente StuxNet\",\n  \"email\": \"stuxnet.{{$guid}}@example.com\",\n  \"senha\": \"StuxNet123!\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+            "if (pm.response.code === 201) {",
+            "  pm.collectionVariables.set('clienteId', pm.response.json().id);",
+            "  pm.collectionVariables.set('clienteEmail', pm.response.json().email);",
+            "}",
+            "pm.test('Nao devolve a senha', function () { pm.expect(pm.response.text().toLowerCase()).not.to.include('senha'); });"
+          ] } }]
+        },
+        {
+          "name": "Listar clientes",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/clientes" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        },
+        {
+          "name": "Buscar cliente",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/clientes/{{clienteId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        },
+        {
+          "name": "Atualizar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Cliente StuxNet Atualizado\",\n  \"email\": \"{{clienteEmail}}\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Nome atualizado', function () { pm.expect(pm.response.json().nome).to.eql('Cliente StuxNet Atualizado'); });"
+          ] } }]
+        },
+        {
+          "name": "Email duplicado retorna 409",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/clientes",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Cliente StuxNet\",\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"StuxNet123!\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 409', function () { pm.response.to.have.status(409); });"
+          ] } }]
+        },
+        {
+          "name": "Cadastrar cliente temporário",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/clientes",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Cliente temporário\",\n  \"email\": \"stuxnet.{{$guid}}@example.com\",\n  \"senha\": \"StuxNet123!\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+            "if (pm.response.code === 201) { pm.collectionVariables.set('clienteTemporarioId', pm.response.json().id); }"
+          ] } }]
+        },
+        {
+          "name": "Excluir cliente temporário",
+          "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/clientes/{{clienteTemporarioId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+          ] } }]
+        },
+        {
+          "name": "Cliente excluído retorna 404",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/clientes/{{clienteTemporarioId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "04 - CEP e endereços",
+      "description": "CEP válido e inexistente precisam de internet (ViaCEP).",
+      "item": [
+        {
+          "name": "Consultar CEP válido",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/cep/01001-000" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Cidade Sao Paulo', function () { pm.expect(pm.response.json().localidade).to.eql('São Paulo'); });",
+            "pm.test('UF SP', function () { pm.expect(pm.response.json().uf).to.eql('SP'); });"
+          ] } }]
+        },
+        {
+          "name": "CEP inexistente retorna 404",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/cep/99999999" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        },
+        {
+          "name": "CEP malformado retorna 400",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/cep/123" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Cadastrar endereço do cliente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}/enderecos",
+            "body": { "mode": "raw", "raw": "{\n  \"cep\": \"01001-000\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 2\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+            "if (pm.response.code === 201) { pm.collectionVariables.set('enderecoId', pm.response.json().id); }",
+            "pm.test('Cidade Sao Paulo', function () { pm.expect(pm.response.json().cidade).to.eql('São Paulo'); });"
+          ] } }]
+        },
+        {
+          "name": "Listar endereços do cliente",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/clientes/{{clienteId}}/enderecos" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        },
+        {
+          "name": "Endereço exige cliente existente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/clientes/9223372036854775807/enderecos",
+            "body": { "mode": "raw", "raw": "{\n  \"cep\": \"01001-000\",\n  \"numero\": \"100\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "05 - Frete",
+      "item": [
+        {
+          "name": "Frete Bahia normal",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=40010000" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Valor 22.9', function () { pm.expect(pm.response.json().valor).to.eql(22.9); });",
+            "pm.test('Prazo 2 dias', function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(2); });"
+          ] } }]
+        },
+        {
+          "name": "Frete Nordeste normal",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=51020001" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Valor 22.9', function () { pm.expect(pm.response.json().valor).to.eql(22.9); });",
+            "pm.test('Prazo 4 dias', function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(4); });"
+          ] } }]
+        },
+        {
+          "name": "Frete Sudeste normal",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=01001000" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Valor 34.9', function () { pm.expect(pm.response.json().valor).to.eql(34.9); });",
+            "pm.test('Prazo 6 dias', function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(6); });"
+          ] } }]
+        },
+        {
+          "name": "Frete outras regiões",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=80010000" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Valor 49.9', function () { pm.expect(pm.response.json().valor).to.eql(49.9); });",
+            "pm.test('Prazo 9 dias', function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(9); });"
+          ] } }]
+        },
+        {
+          "name": "Frete Sudeste expresso",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=01001000&modalidade=EXPRESSO" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Valor 49.9', function () { pm.expect(pm.response.json().valor).to.eql(49.9); });",
+            "pm.test('Prazo 4 dias', function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(4); });"
+          ] } }]
+        },
+        {
+          "name": "Frete Nordeste expresso",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=51020001&modalidade=EXPRESSO" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Valor 37.9', function () { pm.expect(pm.response.json().valor).to.eql(37.9); });",
+            "pm.test('Prazo 2 dias', function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(2); });"
+          ] } }]
+        },
+        {
+          "name": "Frete Bahia expresso",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=40010000&modalidade=EXPRESSO" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Valor 37.9', function () { pm.expect(pm.response.json().valor).to.eql(37.9); });",
+            "pm.test('Prazo minimo 1 dia', function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(1); });"
+          ] } }]
+        },
+        {
+          "name": "Frete com CEP inválido",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=123" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Frete sem CEP",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Modalidade inválida",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/frete?cep=01001000&modalidade=INVALIDA" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "06 - Pedidos e estoque",
+      "item": [
+        {
+          "name": "Criar pedido com hardware e periférico",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/pedidos",
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": [\n    { \"produtoId\": {{produtoId}}, \"quantidade\": 2 },\n    { \"produtoId\": {{perifericoId}}, \"quantidade\": 1 }\n  ]\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+            "if (pm.response.code === 201) { pm.collectionVariables.set('pedidoId', pm.response.json().id); }",
+            "pm.test('Subtotal 1079.7', function () { pm.expect(pm.response.json().subtotal).to.eql(1079.7); });",
+            "pm.test('Frete 34.9', function () { pm.expect(pm.response.json().frete).to.eql(34.9); });",
+            "pm.test('Total 1114.6', function () { pm.expect(pm.response.json().total).to.eql(1114.6); });",
+            "pm.test('Status CRIADO', function () { pm.expect(pm.response.json().status).to.eql('CRIADO'); });"
+          ] } }]
+        },
+        {
+          "name": "Listar pedidos",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/pedidos" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        },
+        {
+          "name": "Buscar pedido",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/pedidos/{{pedidoId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Total 1114.6', function () { pm.expect(pm.response.json().total).to.eql(1114.6); });"
+          ] } }]
+        },
+        {
+          "name": "Conferir baixa de estoque",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/produtos/{{produtoId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Estoque 8', function () { pm.expect(pm.response.json().estoque).to.eql(8); });"
+          ] } }]
+        },
+        {
+          "name": "Estoque insuficiente retorna 409",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/pedidos",
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": [ { \"produtoId\": {{produtoId}}, \"quantidade\": 9999999 } ]\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 409', function () { pm.response.to.have.status(409); });"
+          ] } }]
+        },
+        {
+          "name": "Estoque permanece após falha",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/produtos/{{produtoId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Estoque continua 8', function () { pm.expect(pm.response.json().estoque).to.eql(8); });"
+          ] } }]
+        },
+        {
+          "name": "Produto repetido retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/pedidos",
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": [\n    { \"produtoId\": {{produtoId}}, \"quantidade\": 1 },\n    { \"produtoId\": {{produtoId}}, \"quantidade\": 1 }\n  ]\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Endereço deve pertencer ao cliente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/pedidos",
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": 9223372036854775000,\n  \"itens\": [ { \"produtoId\": {{produtoId}}, \"quantidade\": 1 } ]\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        },
+        {
+          "name": "Produto com histórico não pode ser excluído",
+          "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/produtos/{{produtoId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 409', function () { pm.response.to.have.status(409); });"
+          ] } }]
+        },
+        {
+          "name": "Cliente com histórico não pode ser excluído",
+          "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/clientes/{{clienteId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 409', function () { pm.response.to.have.status(409); });"
+          ] } }]
+        },
+        {
+          "name": "Cancelar pedido",
+          "request": { "method": "PUT", "header": [], "url": "{{baseUrl}}/pedidos/{{pedidoId}}/cancelamento" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Status CANCELADO', function () { pm.expect(pm.response.json().status).to.eql('CANCELADO'); });"
+          ] } }]
+        },
+        {
+          "name": "Conferir devolução de estoque",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/produtos/{{produtoId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Estoque voltou para 10', function () { pm.expect(pm.response.json().estoque).to.eql(10); });"
+          ] } }]
+        },
+        {
+          "name": "Repetir cancelamento",
+          "request": { "method": "PUT", "header": [], "url": "{{baseUrl}}/pedidos/{{pedidoId}}/cancelamento" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Continua CANCELADO', function () { pm.expect(pm.response.json().status).to.eql('CANCELADO'); });"
+          ] } }]
+        },
+        {
+          "name": "Estoque não duplica ao cancelar de novo",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/produtos/{{produtoId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Estoque continua 10', function () { pm.expect(pm.response.json().estoque).to.eql(10); });"
+          ] } }]
+        },
+        {
+          "name": "Criar pedido expresso",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/pedidos",
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": [ { \"produtoId\": {{produtoId}}, \"quantidade\": 1 } ],\n  \"modalidadeFrete\": \"EXPRESSO\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+            "if (pm.response.code === 201) { pm.collectionVariables.set('pedidoExpressoId', pm.response.json().id); }",
+            "pm.test('Frete 49.9', function () { pm.expect(pm.response.json().frete).to.eql(49.9); });",
+            "pm.test('Total 549.8', function () { pm.expect(pm.response.json().total).to.eql(549.8); });"
+          ] } }]
+        },
+        {
+          "name": "Cancelar pedido expresso",
+          "request": { "method": "PUT", "header": [], "url": "{{baseUrl}}/pedidos/{{pedidoExpressoId}}/cancelamento" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "07 - Validações",
+      "item": [
+        {
+          "name": "Rota inexistente retorna 404",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/rota-inexistente" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        },
+        {
+          "name": "Método não permitido retorna 405",
+          "request": { "method": "PATCH", "header": [], "url": "{{baseUrl}}/produtos" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 405', function () { pm.response.to.have.status(405); });"
+          ] } }]
+        },
+        {
+          "name": "Content-Type incorreto retorna 415",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "text/plain" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 500,\n  \"estoque\": 10\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 415', function () { pm.response.to.have.status(415); });"
+          ] } }]
+        },
+        {
+          "name": "JSON malformado retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\"nome\":" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "JSON nulo retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "null" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Campos obrigatórios ausentes",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Preço negativo retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Teste\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": -1,\n  \"estoque\": 10\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Preço com fração de centavo",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Teste\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 1.999,\n  \"estoque\": 10\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Estoque negativo retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Teste\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 500,\n  \"estoque\": -1\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Categoria inválida retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/produtos",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Teste\",\n  \"categoria\": \"OUTRA\",\n  \"preco\": 500,\n  \"estoque\": 10\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Senha curta retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/clientes",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Cliente\",\n  \"email\": \"stuxnet.{{$guid}}@example.com\",\n  \"senha\": \"123\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Email inválido retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/clientes",
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Cliente\",\n  \"email\": \"invalido\",\n  \"senha\": \"StuxNet123!\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Pedido sem itens retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/pedidos",
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": []\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "Pedido inexistente retorna 404",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/pedidos/9223372036854775807" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "08 - ViaCEP direto (opcional)",
+      "description": "Consulta direto no ViaCEP, sem passar pela API. Pode desmarcar no Runner.",
+      "item": [
+        {
+          "name": "CEP válido no ViaCEP",
+          "request": { "method": "GET", "header": [], "url": "https://viacep.com.br/ws/01001000/json/" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Cidade Sao Paulo', function () { pm.expect(pm.response.json().localidade).to.eql('São Paulo'); });"
+          ] } }]
+        },
+        {
+          "name": "CEP inexistente no ViaCEP",
+          "request": { "method": "GET", "header": [], "url": "https://viacep.com.br/ws/99999999/json/" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Veio erro no JSON', function () { pm.expect(String(pm.response.json().erro)).to.eql('true'); });"
+          ] } }]
+        },
+        {
+          "name": "CEP malformado no ViaCEP",
+          "request": { "method": "GET", "header": [], "url": "https://viacep.com.br/ws/123/json/" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        }
+      ]
+    }
+  ]
+}
