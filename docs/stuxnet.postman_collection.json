@@ -1,36 +1,120 @@
 {
   "info": {
     "name": "Stuxnet",
-    "description": "Chamadas da API externa (ViaCEP) usada pelo ViaCepService.java",
+    "description": "Testes da parte da ViaCEP. A primeira pasta é direto na ViaCEP, a segunda é nossa API (só funciona com o servidor ligado na porta 8080).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api"
+    }
+  ],
   "item": [
     {
-      "name": "ViaCEP - CEP valido",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "https://viacep.com.br/ws/01001000/json/",
-        "description": "Resultado esperado: 200 com logradouro Praça da Sé, localidade São Paulo e uf SP."
-      }
+      "name": "ViaCEP direto",
+      "item": [
+        {
+          "name": "CEP valido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://viacep.com.br/ws/01001000/json/",
+            "description": "Resultado esperado: voltar 200 com Praça da Sé, São Paulo e SP."
+          }
+        },
+        {
+          "name": "CEP inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://viacep.com.br/ws/99999999/json/",
+            "description": "Resultado esperado: Volta 200 com {\"erro\": \"true\"}, nao dá 404. O erro vem como texto, e o ViaCepService transforma isso numa exceção."
+          }
+        },
+        {
+          "name": "CEP mal formado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://viacep.com.br/ws/123/json/",
+            "description": "Resultado esperado: Volta 400 com uma página HTML. Na nossa API isso nem chega na ViaCEP, o service já barra antes porque o CEP não tem 8 dígitos."
+          }
+        }
+      ]
     },
     {
-      "name": "ViaCEP - CEP inexistente",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "https://viacep.com.br/ws/99999999/json/",
-        "description": "Esperado: 200 com {\"erro\": \"true\"}. O erro vem como texto e o ViaCepService transforma isso em exceção."
-      }
-    },
-    {
-      "name": "ViaCEP - CEP mal formado",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "https://viacep.com.br/ws/123/json/",
-        "description": "Esperado: 400 com uma página HTML. Na nossa API esse caso nem chama a ViaCEP, porque o service confere se tem os 8 dígitos antes."
-      }
+      "name": "Stuxnet",
+      "item": [
+        {
+          "name": "Consultar CEP (valido)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cep/01001-000",
+            "description": "Resultado esperado: Voltar 200 com rua, bairro, cidade e UF."
+          }
+        },
+        {
+          "request": {          "name": "Consultar CEP (inexistente)",
+
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cep/99999999",
+            "description": "Resultado esperado: voltar 404, porque a ViaCEP respondeu erro."
+          }
+        },
+        {
+          "name": "Consultar CEP (quantidade errada de dígitos)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cep/123",
+            "description": "Resultado esperado: voltar 400, sem nem chamar a ViaCEP."
+          }
+        },
+        {
+          "name": "Cadastrar endereco do cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cep\": \"01001-000\",\n  \"numero\": \"100\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/clientes/1/enderecos",
+            "description": "Manda só o CEP e o número, a API completa o resto pela ViaCEP e grava. Tem que voltar 201. Precisa ter o cliente 1 cadastrado antes, se não existir dá 404."
+          }
+        },
+        {
+          "name": "Frete para a Bahia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=40020000",
+            "description": "Resultado esperado: Voltar 200 com frete de R$ 22,90 e 2 dias úteis."
+          }
+        },
+        {
+          "name": "Frete para o Sudeste",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=01001000",
+            "description": "Resultado esperado: Voltar 200 com frete de R$ 34,90 e 6 dias úteis."
+          }
+        }
+      ]
     }
   ]
 }
