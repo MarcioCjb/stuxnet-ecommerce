@@ -1,0 +1,1987 @@
+{
+  "info": {
+    "name": "StuxNet - E-commerce de hardware e periféricos",
+    "description": "API em Java 17 sem frameworks, organizada conforme a Aula 15: FrontController, Command, Service, DAO e Model, com DTOs e infraestrutura separados. Padrões GoF: Command, Strategy e Decorator. Execute as pastas 01 a 07 em ordem no Collection Runner. IDs e email são salvos automaticamente; não é preciso criar cliente 1. A pasta 08 preserva consultas diretas ao ViaCEP e é opcional. Reiniciar o servidor apaga os dados em memória. Consulte README.md e docs/manual-apresentacao.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "produtoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "perifericoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "produtoTemporarioId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clienteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clienteEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clienteTemporarioId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "enderecoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pedidoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pedidoExpressoId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Disponibilidade",
+      "item": [
+        {
+          "name": "Saúde da API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"status esperado\", function () { pm.expect(pm.response.json().status).to.eql(\"UP\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Produtos (CRUD)",
+      "item": [
+        {
+          "name": "Cadastrar hardware",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 201. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 500,\n  \"estoque\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"produtoId\", pm.response.json().id);",
+                  "pm.test(\"Location do recurso criado\", function () { pm.expect(pm.response.headers.get(\"Location\")).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar produtos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Lista de produtos\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar hardware",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/produtos/{{produtoId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"categoria esperado\", function () { pm.expect(pm.response.json().categoria).to.eql(\"HARDWARE\"); });",
+                  "pm.test(\"estoque esperado\", function () { pm.expect(pm.response.json().estoque).to.eql(10); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar hardware",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos/{{produtoId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 499.9,\n  \"estoque\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"preco esperado\", function () { pm.expect(pm.response.json().preco).to.eql(499.9); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar periférico",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 201. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mouse USB\",\n  \"categoria\": \"PERIFERICO\",\n  \"preco\": 79.9,\n  \"estoque\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"perifericoId\", pm.response.json().id);",
+                  "pm.test(\"Location do recurso criado\", function () { pm.expect(pm.response.headers.get(\"Location\")).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar produto temporário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 201. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Produto temporário\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 500,\n  \"estoque\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"produtoTemporarioId\", pm.response.json().id);",
+                  "pm.test(\"Location do recurso criado\", function () { pm.expect(pm.response.headers.get(\"Location\")).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Excluir produto temporário",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/produtos/{{produtoTemporarioId}}",
+            "description": "Esperado HTTP 204. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", function () { pm.response.to.have.status(204); });",
+                  "pm.test(\"Resposta sem corpo\", function () { pm.expect(pm.response.text()).to.eql(\"\"); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Produto excluído retorna 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/produtos/{{produtoTemporarioId}}",
+            "description": "Esperado HTTP 404. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Clientes (CRUD e proteção de dados)",
+      "item": [
+        {
+          "name": "Cadastrar cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes",
+            "description": "Esperado HTTP 201. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente StuxNet\",\n  \"email\": \"stuxnet.{{$guid}}@example.com\",\n  \"senha\": \"StuxNet123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"clienteId\", pm.response.json().id);",
+                  "pm.test(\"Location do recurso criado\", function () { pm.expect(pm.response.headers.get(\"Location\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"clienteEmail\", pm.response.json().email);",
+                  "pm.test(\"DTO não expõe senha nem hash\", function () { pm.expect(pm.response.text().toLowerCase()).not.to.include(\"senha\"); pm.expect(pm.response.text()).not.to.include(\"pbkdf2\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/clientes",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"DTO não expõe senha nem hash\", function () { pm.expect(pm.response.text().toLowerCase()).not.to.include(\"senha\"); pm.expect(pm.response.text()).not.to.include(\"pbkdf2\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"DTO não expõe senha nem hash\", function () { pm.expect(pm.response.text().toLowerCase()).not.to.include(\"senha\"); pm.expect(pm.response.text()).not.to.include(\"pbkdf2\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente StuxNet Atualizado\",\n  \"email\": \"{{clienteEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"DTO não expõe senha nem hash\", function () { pm.expect(pm.response.text().toLowerCase()).not.to.include(\"senha\"); pm.expect(pm.response.text()).not.to.include(\"pbkdf2\"); });",
+                  "pm.test(\"nome esperado\", function () { pm.expect(pm.response.json().nome).to.eql(\"Cliente StuxNet Atualizado\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Email duplicado retorna 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes",
+            "description": "Esperado HTTP 409. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente StuxNet\",\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"StuxNet123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(409); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar cliente temporário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes",
+            "description": "Esperado HTTP 201. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente temporário\",\n  \"email\": \"stuxnet.{{$guid}}@example.com\",\n  \"senha\": \"StuxNet123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"clienteTemporarioId\", pm.response.json().id);",
+                  "pm.test(\"Location do recurso criado\", function () { pm.expect(pm.response.headers.get(\"Location\")).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Excluir cliente temporário",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/{{clienteTemporarioId}}",
+            "description": "Esperado HTTP 204. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", function () { pm.response.to.have.status(204); });",
+                  "pm.test(\"Resposta sem corpo\", function () { pm.expect(pm.response.text()).to.eql(\"\"); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cliente excluído retorna 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/{{clienteTemporarioId}}",
+            "description": "Esperado HTTP 404. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - ViaCEP e endereços",
+      "description": "As consultas válidas e inexistentes dependem de conexão com o ViaCEP. A validação de formato é local.",
+      "item": [
+        {
+          "name": "Consultar CEP válido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cep/01001-000",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"logradouro esperado\", function () { pm.expect(pm.response.json().logradouro).to.eql(\"Praça da Sé\"); });",
+                  "pm.test(\"localidade esperado\", function () { pm.expect(pm.response.json().localidade).to.eql(\"São Paulo\"); });",
+                  "pm.test(\"uf esperado\", function () { pm.expect(pm.response.json().uf).to.eql(\"SP\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CEP inexistente retorna 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cep/99999999",
+            "description": "Esperado HTTP 404. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CEP malformado retorna 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cep/123",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CEP com letras retorna 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/cep/abc01001000",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar endereço do cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}/enderecos",
+            "description": "Esperado HTTP 201. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cep\": \"01001-000\",\n  \"numero\": \"100\",\n  \"complemento\": \"Sala 2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"enderecoId\", pm.response.json().id);",
+                  "pm.test(\"Location do recurso criado\", function () { pm.expect(pm.response.headers.get(\"Location\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"cidade esperado\", function () { pm.expect(pm.response.json().cidade).to.eql(\"São Paulo\"); });",
+                  "pm.test(\"numero esperado\", function () { pm.expect(pm.response.json().numero).to.eql(\"100\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar endereços do cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}/enderecos",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Endereço cadastrado\", function () { pm.expect(pm.response.json().some(e => e.id == pm.collectionVariables.get(\"enderecoId\"))).to.eql(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Endereço exige cliente existente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes/9223372036854775807/enderecos",
+            "description": "Esperado HTTP 404. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cep\": \"01001-000\",\n  \"numero\": \"100\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Frete (Strategy e Decorator)",
+      "item": [
+        {
+          "name": "Frete Bahia normal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=40010000",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"valor esperado\", function () { pm.expect(pm.response.json().valor).to.eql(22.9); });",
+                  "pm.test(\"prazoDiasUteis esperado\", function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(2); });",
+                  "pm.test(\"modalidade esperado\", function () { pm.expect(pm.response.json().modalidade).to.eql(\"NORMAL\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Frete Sudeste normal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=01001000",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"valor esperado\", function () { pm.expect(pm.response.json().valor).to.eql(34.9); });",
+                  "pm.test(\"prazoDiasUteis esperado\", function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(6); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Frete outras regiões",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=80010000",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"valor esperado\", function () { pm.expect(pm.response.json().valor).to.eql(44.9); });",
+                  "pm.test(\"prazoDiasUteis esperado\", function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(8); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Frete Sudeste expresso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=01001000&modalidade=EXPRESSO",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"valor esperado\", function () { pm.expect(pm.response.json().valor).to.eql(49.9); });",
+                  "pm.test(\"prazoDiasUteis esperado\", function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(4); });",
+                  "pm.test(\"modalidade esperado\", function () { pm.expect(pm.response.json().modalidade).to.eql(\"EXPRESSO\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Frete Bahia expresso (mínimo um dia)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=40010000&modalidade=EXPRESSO",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"valor esperado\", function () { pm.expect(pm.response.json().valor).to.eql(37.9); });",
+                  "pm.test(\"prazoDiasUteis esperado\", function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(1); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Frete com CEP inválido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=123",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Frete sem CEP",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modalidade inválida",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/frete?cep=01001000&modalidade=INVALIDA",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Pedidos e estoque",
+      "description": "Os preços são consultados no catálogo; subtotal, frete e total são calculados no servidor. O cancelamento mantém o histórico.",
+      "item": [
+        {
+          "name": "Criar pedido com hardware e periférico",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "description": "Esperado HTTP 201. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": [\n    {\n      \"produtoId\": {{produtoId}},\n      \"quantidade\": 2\n    },\n    {\n      \"produtoId\": {{perifericoId}},\n      \"quantidade\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"pedidoId\", pm.response.json().id);",
+                  "pm.test(\"Location do recurso criado\", function () { pm.expect(pm.response.headers.get(\"Location\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"subtotal esperado\", function () { pm.expect(pm.response.json().subtotal).to.eql(1079.7); });",
+                  "pm.test(\"frete esperado\", function () { pm.expect(pm.response.json().frete).to.eql(34.9); });",
+                  "pm.test(\"total esperado\", function () { pm.expect(pm.response.json().total).to.eql(1114.6); });",
+                  "pm.test(\"status esperado\", function () { pm.expect(pm.response.json().status).to.eql(\"CRIADO\"); });",
+                  "pm.test(\"DTO não expõe senha nem hash\", function () { pm.expect(pm.response.text().toLowerCase()).not.to.include(\"senha\"); pm.expect(pm.response.text()).not.to.include(\"pbkdf2\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar pedidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pedidos",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"DTO não expõe senha nem hash\", function () { pm.expect(pm.response.text().toLowerCase()).not.to.include(\"senha\"); pm.expect(pm.response.text()).not.to.include(\"pbkdf2\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar pedido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pedidos/{{pedidoId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"total esperado\", function () { pm.expect(pm.response.json().total).to.eql(1114.6); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Conferir baixa de estoque",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/produtos/{{produtoId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"estoque esperado\", function () { pm.expect(pm.response.json().estoque).to.eql(8); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estoque insuficiente retorna 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "description": "Esperado HTTP 409. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": [\n    {\n      \"produtoId\": {{produtoId}},\n      \"quantidade\": 9999999\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(409); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estoque permanece após falha",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/produtos/{{produtoId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"estoque esperado\", function () { pm.expect(pm.response.json().estoque).to.eql(8); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Produto repetido retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": [\n    {\n      \"produtoId\": {{produtoId}},\n      \"quantidade\": 1\n    },\n    {\n      \"produtoId\": {{produtoId}},\n      \"quantidade\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Endereço deve pertencer ao cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "description": "Esperado HTTP 404. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": 9223372036854775000,\n  \"itens\": [\n    {\n      \"produtoId\": {{produtoId}},\n      \"quantidade\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Produto com histórico não pode ser excluído",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/produtos/{{produtoId}}",
+            "description": "Esperado HTTP 409. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(409); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cliente com histórico não pode ser excluído",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/{{clienteId}}",
+            "description": "Esperado HTTP 409. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(409); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancelar pedido",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/pedidos/{{pedidoId}}/cancelamento",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"status esperado\", function () { pm.expect(pm.response.json().status).to.eql(\"CANCELADO\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Conferir devolução de estoque",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/produtos/{{produtoId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"estoque esperado\", function () { pm.expect(pm.response.json().estoque).to.eql(10); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Repetir cancelamento é idempotente",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/pedidos/{{pedidoId}}/cancelamento",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"status esperado\", function () { pm.expect(pm.response.json().status).to.eql(\"CANCELADO\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estoque não duplica ao cancelar novamente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/produtos/{{produtoId}}",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"estoque esperado\", function () { pm.expect(pm.response.json().estoque).to.eql(10); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar pedido expresso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "description": "Esperado HTTP 201. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": [\n    {\n      \"produtoId\": {{produtoId}},\n      \"quantidade\": 1\n    }\n  ],\n  \"modalidadeFrete\": \"EXPRESSO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"pedidoExpressoId\", pm.response.json().id);",
+                  "pm.test(\"Location do recurso criado\", function () { pm.expect(pm.response.headers.get(\"Location\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"frete esperado\", function () { pm.expect(pm.response.json().frete).to.eql(49.9); });",
+                  "pm.test(\"total esperado\", function () { pm.expect(pm.response.json().total).to.eql(549.8); });",
+                  "pm.test(\"prazoDiasUteis esperado\", function () { pm.expect(pm.response.json().prazoDiasUteis).to.eql(4); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancelar pedido expresso",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/pedidos/{{pedidoExpressoId}}/cancelamento",
+            "description": "Esperado HTTP 200. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"status esperado\", function () { pm.expect(pm.response.json().status).to.eql(\"CANCELADO\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Validação e Front Controller",
+      "item": [
+        {
+          "name": "Rota inexistente retorna 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/rota-inexistente",
+            "description": "Esperado HTTP 404. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Método não permitido retorna 405",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 405. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 405\", function () { pm.response.to.have.status(405); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(405); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });",
+                  "pm.test(\"Header Allow\", function () { pm.expect(pm.response.headers.get(\"Allow\")).to.include(\"POST\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Content-Type incorreto retorna 415",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 415. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 500,\n  \"estoque\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 415\", function () { pm.response.to.have.status(415); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(415); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "JSON malformado retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nome\":",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "JSON nulo retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "null",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Campos obrigatórios ausentes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preço negativo retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": -1,\n  \"estoque\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preço com fração de centavo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 1.999,\n  \"estoque\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estoque negativo retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"HARDWARE\",\n  \"preco\": 500,\n  \"estoque\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Categoria inválida retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/produtos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Memória DDR5 16 GB\",\n  \"descricao\": \"Componente de hardware StuxNet\",\n  \"categoria\": \"OUTRA\",\n  \"preco\": 500,\n  \"estoque\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Senha curta retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente StuxNet\",\n  \"email\": \"stuxnet.{{$guid}}@example.com\",\n  \"senha\": \"123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Email inválido retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente StuxNet\",\n  \"email\": \"invalido\",\n  \"senha\": \"StuxNet123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pedido sem itens retorna 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pedidos",
+            "description": "Esperado HTTP 400. Execute a coleção na ordem para preencher as variáveis dos recursos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"enderecoId\": {{enderecoId}},\n  \"itens\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pedido inexistente retorna 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pedidos/9223372036854775807",
+            "description": "Esperado HTTP 404. Execute a coleção na ordem para preencher as variáveis dos recursos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Resposta JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); pm.response.json(); });",
+                  "pm.test(\"Rastreamento centralizado\", function () { pm.expect(pm.response.headers.get(\"X-Request-Id\")).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Erro estruturado\", function () { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.codigo).to.be.a(\"string\"); pm.expect(e.mensagem).to.be.a(\"string\"); pm.expect(e.requestId).to.eql(pm.response.headers.get(\"X-Request-Id\")); pm.expect(e).not.to.have.property(\"stackTrace\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 - ViaCEP direto (opcional)",
+      "description": "Pasta independente preservada da coleção original. Pode ser desmarcada no Runner; não é necessária para validar as rotas StuxNet.",
+      "item": [
+        {
+          "name": "CEP válido no fornecedor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://viacep.com.br/ws/01001000/json/",
+            "description": "Consulta direta ao fornecedor para comparar com o tratamento realizado pela API StuxNet."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Cidade São Paulo\", function () { pm.expect(pm.response.json().localidade).to.eql(\"São Paulo\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CEP inexistente no fornecedor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://viacep.com.br/ws/99999999/json/",
+            "description": "Consulta direta ao fornecedor para comparar com o tratamento realizado pela API StuxNet."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Fornecedor sinaliza erro no JSON\", function () { pm.expect(String(pm.response.json().erro)).to.eql(\"true\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CEP malformado no fornecedor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://viacep.com.br/ws/123/json/",
+            "description": "Consulta direta ao fornecedor para comparar com o tratamento realizado pela API StuxNet."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Corpo de erro do fornecedor\", function () { pm.expect(pm.response.text()).not.to.eql(\"\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
