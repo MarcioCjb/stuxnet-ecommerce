@@ -24,6 +24,9 @@ public final class ViaCepStub implements AutoCloseable {
                 case "01001000" -> "{\"cep\":\"01001-000\",\"logradouro\":\"Praça da Sé\",\"bairro\":\"Sé\",\"localidade\":\"São Paulo\",\"uf\":\"SP\"}";
                 case "40010000" -> "{\"cep\":\"40010-000\",\"logradouro\":\"Avenida da França\",\"bairro\":\"Comércio\",\"localidade\":\"Salvador\",\"uf\":\"BA\"}";
                 case "80010000" -> "{\"cep\":\"80010-000\",\"localidade\":\"Curitiba\",\"uf\":\"PR\"}";
+                case "48110000" -> "{\"cep\":\"48110-000\",\"localidade\":\"Cidade de teste BA\",\"uf\":\"BA\"}";
+                case "51020001" -> "{\"cep\":\"51020-001\",\"localidade\":\"Recife\",\"uf\":\"PE\"}";
+                case "70040010" -> "{\"cep\":\"70040-010\",\"localidade\":\"Brasília\",\"uf\":\"DF\"}";
                 case "11111111" -> "<html>indisponível</html>";
                 case "22222222" -> "null";
                 case "33333333" -> "{}";

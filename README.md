@@ -15,7 +15,7 @@ mvn clean verify
 java -jar target/stuxnet-ecommerce-1.0.0.jar
 ```
 
-Se estiver na raiz do repositório, primeiro execute `cd stuxnet-ecommerce`.
+Execute os comandos na raiz do repositório, onde está o arquivo `pom.xml`.
 
 O servidor atende em `http://localhost:8080/api`. Verifique `GET http://localhost:8080/api/health`; a resposta esperada é `200` e `{"aplicacao":"StuxNet","status":"UP"}`. Encerre com `Ctrl+C`.
 
@@ -37,7 +37,7 @@ O servidor escuta em `127.0.0.1`. Os dados começam vazios e **são apagados qua
 3. Abra o **Collection Runner**, selecione as pastas **01 a 07** e execute na ordem apresentada, com uma iteração.
 4. Confira os resultados dos scripts de teste. A pasta **08 — ViaCEP direto** é opcional e preserva a comparação com o fornecedor da integração original.
 
-A coleção contém **65 requisições: 62 para a StuxNet e 3 diretas ao ViaCEP**. Há cobertura de todas as combinações de método e rota implementadas, com scripts para status, JSON, proteção dos dados do cliente, frete, totais e estoque. IDs retornados são gravados automaticamente nas variáveis da coleção; os emails usam valores aleatórios. Execute as pastas anteriores antes de enviar isoladamente uma requisição que utiliza essas variáveis. Uma nova execução completa cria seus próprios recursos, inclusive se o servidor continuar ligado.
+A coleção contém **67 requisições: 64 para a StuxNet e 3 diretas ao ViaCEP**. Há cobertura de todas as combinações de método e rota implementadas, com scripts para status, JSON, proteção dos dados do cliente, frete, totais e estoque. IDs retornados são gravados automaticamente nas variáveis da coleção; os emails usam valores aleatórios. Execute as pastas anteriores antes de enviar isoladamente uma requisição que utiliza essas variáveis. Uma nova execução completa cria seus próprios recursos, inclusive se o servidor continuar ligado.
 
 A coleção cobre os fluxos de CRUD, endereço e compra; também valida CEP inválido/inexistente, email duplicado, falta de estoque, tentativa de exclusão com histórico, cancelamento repetido, JSON inválido, campos inválidos, rota desconhecida, método incompatível e tipo de conteúdo incorreto.
 
@@ -125,8 +125,9 @@ O endereço deve pertencer ao cliente e a quantidade deve ser um inteiro positiv
 | Destino | Normal | Prazo normal | Expresso | Prazo expresso |
 | --- | --- | --- | --- | --- |
 | Bahia | R$ 22,90 | 2 dias úteis | R$ 37,90 | 1 dia útil |
+| Demais estados do Nordeste (SE, PE, AL, PB, RN, CE, PI, MA) | R$ 22,90 | 4 dias úteis | R$ 37,90 | 2 dias úteis |
 | Sudeste (SP, RJ, MG, ES) | R$ 34,90 | 6 dias úteis | R$ 49,90 | 4 dias úteis |
-| Demais UFs | R$ 44,90 | 8 dias úteis | R$ 59,90 | 6 dias úteis |
+| Demais UFs | R$ 49,90 | 9 dias úteis | R$ 64,90 | 7 dias úteis |
 
 As tarifas são regras didáticas da StuxNet. `NORMAL` é o padrão quando a modalidade não é informada. `EXPRESSO` acrescenta R$ 15,00 e reduz o prazo em dois dias, com mínimo de um dia útil. No pedido, o frete usa a UF do endereço cadastrado; não depende de uma nova chamada ao fornecedor.
 
@@ -176,7 +177,7 @@ HTTP → FrontController → Router → Command → Service → DAO → Memória
 | DTO | [dto/](src/main/java/br/com/stuxnet/dto) | Contratos de entrada/saída separados das entidades. `ClienteDTO.Resposta` omite `senhaHash`; os comandos retornam DTOs para o Front Controller serializar. |
 | DAO / Repository | [DAO.java](src/main/java/br/com/stuxnet/dao/DAO.java), [ProdutoDAO.java](src/main/java/br/com/stuxnet/dao/ProdutoDAO.java), [ProdutoEmMemoriaDAO.java](src/main/java/br/com/stuxnet/dao/memory/ProdutoEmMemoriaDAO.java) | Interfaces específicas de produto, cliente e pedido estendem um contrato comum. Serviços recebem essas interfaces; `dao/memory` isola o armazenamento. Endereços pertencem ao agregado Cliente. |
 | GoF Command | [Command.java](src/main/java/br/com/stuxnet/command/Command.java), [CadastrarProdutoCommand.java](src/main/java/br/com/stuxnet/command/produto/CadastrarProdutoCommand.java), [CriarPedidoCommand.java](src/main/java/br/com/stuxnet/command/pedido/CriarPedidoCommand.java) | Cada uma das 19 operações HTTP é encapsulada em uma classe. O roteador executa o mesmo contrato, e cada comando adapta a entrada para um serviço. |
-| GoF Strategy | [FreteStrategy.java](src/main/java/br/com/stuxnet/frete/FreteStrategy.java), `FreteBahia`, `FreteSudeste`, `FreteOutrasRegioes` | Políticas intercambiáveis fornecem o preço e o prazo regional; `FreteService` seleciona a política pela UF. |
+| GoF Strategy | [FreteStrategy.java](src/main/java/br/com/stuxnet/frete/FreteStrategy.java), `FreteBahia`, `FreteNordeste`, `FreteSudeste`, `FreteOutrasRegioes` | Políticas intercambiáveis fornecem o preço e o prazo regional; `FreteService` seleciona a política pela UF. |
 | GoF Decorator | [FreteExpressoDecorator.java](src/main/java/br/com/stuxnet/frete/FreteExpressoDecorator.java) | Envolve qualquer `FreteStrategy`, preserva o contrato e acrescenta preço/prazo da modalidade expressa sem alterar as políticas regionais. |
 
 A inicialização do servidor ocorre em [StuxNetApplication.java](src/main/java/br/com/stuxnet/StuxNetApplication.java). A composição das dependências e o registro dos comandos ficam em [ConfiguracaoAplicacao.java](src/main/java/br/com/stuxnet/infra/ConfiguracaoAplicacao.java). Instâncias são construídas explicitamente. Uma implementação futura dos DAOs com banco também exigiria substituir a coordenação em memória por transações adequadas.
@@ -234,6 +235,6 @@ mvn test
 
 Os testes exercitam HTTP real em portas locais livres: CRUD, DTOs sem dados sensíveis, normalização de email, todos os fretes, totais, baixa e restauração de estoque, falha de pedido sem alteração parcial, disputa pela última unidade, erros de entrada e falhas do fornecedor. A derivação de senha também é verificada. O fornecedor é simulado apenas em `src/test`, mantendo a suíte independente da disponibilidade da internet.
 
-Consulte [docs/manual-apresentacao.md](docs/manual-apresentacao.md) para o roteiro de apresentação, demonstração no Postman, localização dos padrões e respostas a perguntas da avaliação.
+Consulte [docs/viaCep.md](docs/viaCep.md) para os detalhes da integração com o ViaCEP e das quatro faixas regionais de frete. Para demonstrar a API, siga as pastas da coleção na ordem apresentada neste README.
 
 Esta entrega tem escopo acadêmico: armazenamento volátil, API local e aberta, sem login/autorização, pagamento real ou integração com transportadora. A senha é protegida no armazenamento e nos DTOs, mas não existe autenticação implementada. Um uso em produção exigiria desenvolver esses recursos.

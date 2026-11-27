@@ -6,6 +6,8 @@ import br.com.stuxnet.frete.*;
 import java.util.Set;
 
 public final class FreteService {
+    private static final Set<String> OUTROS_NORDESTE = Set.of("SE", "PE", "AL", "PB", "RN", "CE", "PI", "MA");
+    private static final Set<String> SUDESTE = Set.of("SP", "RJ", "MG", "ES");
     private final ConsultaCep consultaCep;
 
     public FreteService(ConsultaCep consultaCep) { this.consultaCep = consultaCep; }
@@ -17,7 +19,8 @@ public final class FreteService {
         String tipo = modalidade == null ? "NORMAL" : modalidade;
         Validacao.exigir(tipo.equals("NORMAL") || tipo.equals("EXPRESSO"), "modalidade deve ser NORMAL ou EXPRESSO");
         FreteStrategy estrategia = uf.equals("BA") ? new FreteBahia()
-                : Set.of("SP", "RJ", "MG", "ES").contains(uf) ? new FreteSudeste() : new FreteOutrasRegioes();
+                : OUTROS_NORDESTE.contains(uf) ? new FreteNordeste()
+                : SUDESTE.contains(uf) ? new FreteSudeste() : new FreteOutrasRegioes();
         if (tipo.equals("EXPRESSO")) estrategia = new FreteExpressoDecorator(estrategia);
         FreteStrategy.Cotacao cotacao = estrategia.calcular();
         return new FreteDTO(cep, uf, tipo, cotacao.valor(), cotacao.prazoDiasUteis());

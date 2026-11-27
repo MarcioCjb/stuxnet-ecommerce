@@ -86,8 +86,9 @@ class ApiIntegrationTest {
     }
     @Test void calculaFreteRegionalEExpressaPorComposicao() throws Exception {
         String[][] casos = {{"40010000", "NORMAL", "22.90", "2"}, {"01001000", "NORMAL", "34.90", "6"},
-                {"80010000", "NORMAL", "44.90", "8"}, {"40010000", "EXPRESSO", "37.90", "1"},
-                {"01001000", "EXPRESSO", "49.90", "4"}, {"80010000", "EXPRESSO", "59.90", "6"}};
+                {"80010000", "NORMAL", "49.90", "9"}, {"51020001", "NORMAL", "22.90", "4"},
+                {"40010000", "EXPRESSO", "37.90", "1"}, {"51020001", "EXPRESSO", "37.90", "2"},
+                {"01001000", "EXPRESSO", "49.90", "4"}, {"80010000", "EXPRESSO", "64.90", "7"}};
         for (String[] caso : casos) {
             JsonObject cotacao = objeto(enviar("GET", "/api/frete?cep=" + caso[0] + "&modalidade=" + caso[1], null, 200));
             assertEquals(new java.math.BigDecimal(caso[2]), cotacao.get("valor").getAsBigDecimal());
