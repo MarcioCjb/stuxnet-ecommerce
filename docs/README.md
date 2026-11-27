@@ -11,9 +11,6 @@ Este diretório reúne os diagramas de modelagem, a especificação da integraç
 - viaCep.md — Documentação sobre o consumo da API pública do ViaCEP, validações de entrada e tratamento de falhas.
 - stuxnet.postman_collection.json — Coleção do Postman pronta para importação, contendo as requisições de teste para todos os endpoints da aplicação.
 
-- apresentacao-stuxnet.docx — Documento principal da apresentação em Word, dividido entre três integrantes.
-- apresentacao-stuxnet.pdf — Versão PDF dos slides para leitura e projeção.
-- apresentacao-stuxnet.pptx — Apresentação com 12 slides, dividida entre três integrantes, incluindo notas de fala e demonstração de persistência.
 - roteiro-apresentacao-tres-integrantes.docx — Roteiro atualizado de fala por integrante, tempo sugerido e passo a passo da demonstração.
 
 Os PDFs de modelagem são documentos anteriores à integração PostgreSQL. Para as tabelas, restrições e índices efetivamente utilizados, consulte [schema.sql](../src/main/resources/db/schema.sql) e o [README principal](../README.md).

@@ -16,7 +16,7 @@ mvn clean verify
 java -jar target/stuxnet-ecommerce-1.0.0.jar
 ```
 
-Execute os comandos na pasta `stuxnet-ecommerce`, onde estão `pom.xml` e `database.properties`. O arquivo de configuração é lido a partir da pasta atual do terminal.
+Execute os comandos na raiz do repositório, onde estão `pom.xml` e `database.properties`. O arquivo de configuração é lido a partir da pasta atual do terminal.
 
 O servidor atende em `http://localhost:8080/api`. Verifique `GET http://localhost:8080/api/health`; a resposta esperada é `200` e `{"aplicacao":"StuxNet","status":"UP"}`. Encerre com `Ctrl+C`.
 
@@ -316,7 +316,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/testar-postgres.ps1
 
 O script lê a configuração local e utiliza exclusivamente `stuxnet_test`. Cada teste cria e remove seu próprio schema; os registros da aplicação não são apagados. Para um ambiente diferente, defina `TEST_DB_URL`, `TEST_DB_USER` e `TEST_DB_PASSWORD` apontando para um banco de testes e execute `mvn test`.
 
-O documento principal da apresentação está em **[docs/apresentacao-stuxnet.docx](docs/apresentacao-stuxnet.docx)**, em Word, com as falas divididas entre três integrantes. Os [12 slides em PowerPoint](docs/apresentacao-stuxnet.pptx) e a [versão PDF dos slides](docs/apresentacao-stuxnet.pdf) ficam como materiais complementares. A divisão é: integrante 1 nos slides 1–4 (contexto e funcionalidades), integrante 2 nos slides 5–8 (arquitetura e padrões) e integrante 3 nos slides 9–12 (PostgreSQL, testes e demonstração), com aproximadamente quatro a cinco minutos por pessoa. O roteiro detalhado está em [docs/roteiro-apresentacao-tres-integrantes.docx](docs/roteiro-apresentacao-tres-integrantes.docx).
+A apresentação em Word está em **[docs/roteiro-apresentacao-tres-integrantes.docx](docs/roteiro-apresentacao-tres-integrantes.docx)**, com as falas e a demonstração divididas entre três integrantes: contexto e funcionalidades; arquitetura e padrões; PostgreSQL, testes e demonstração. O tempo sugerido é de quatro a cinco minutos por pessoa. O script `scripts/gerar-apresentacao.py` permite gerar novamente os documentos e os slides complementares na pasta `docs`.
 
 Consulte [docs/viaCep.md](docs/viaCep.md) para os detalhes da integração com o ViaCEP e das quatro faixas regionais de frete. Para demonstrar a API, siga as pastas da coleção na ordem apresentada neste README.
 
