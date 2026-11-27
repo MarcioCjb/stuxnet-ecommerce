@@ -49,7 +49,7 @@ class ApiIntegrationTest {
         return id(enviar("POST", "/api/produtos", "{\"nome\":\"" + nome + "\",\"categoria\":\"HARDWARE\",\"preco\":499.90,\"estoque\":" + estoque + "}", 201));
     }
     private long cliente() throws Exception {
-        return id(enviar("POST", "/api/clientes", "{\"nome\":\"André\",\"email\":\"andre@example.com\",\"senha\":\"senha12345\"}", 201));
+        return id(enviar("POST", "/api/clientes", "{\"nome\":\"Andrei\",\"email\":\"andrei@example.com\",\"senha\":\"senha12345\"}", 201));
     }
     private long endereco(long cliente) throws Exception {
         return id(enviar("POST", "/api/clientes/" + cliente + "/enderecos", "{\"cep\":\"01001-000\",\"numero\":\"100\"}", 201));
@@ -78,8 +78,8 @@ class ApiIntegrationTest {
             assertFalse(json.toLowerCase().contains("senha"));
             assertFalse(json.contains("pbkdf2"));
         }
-        enviar("POST", "/api/clientes", "{\"nome\":\"Outro\",\"email\":\"ANDRE@example.com\",\"senha\":\"senha12345\"}", 409);
-        enviar("PUT", rota, "{\"nome\":\"André Moreira\",\"email\":\"novo@example.com\"}", 200);
+        enviar("POST", "/api/clientes", "{\"nome\":\"Outro\",\"email\":\"ANDREI@example.com\",\"senha\":\"senha12345\"}", 409);
+        enviar("PUT", rota, "{\"nome\":\"Andrei Moreira\",\"email\":\"novo@example.com\"}", 200);
         enviar("GET", rota + "/enderecos", null, 200);
         enviar("DELETE", rota, null, 204);
         enviar("GET", rota, null, 404);
