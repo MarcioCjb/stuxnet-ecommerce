@@ -56,8 +56,8 @@
           }
         },
         {
-          "request": {          "name": "Consultar CEP (inexistente)",
-
+          "name": "Consultar CEP (inexistente)",
+          "request": {          
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/cep/99999999",
